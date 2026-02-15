@@ -274,6 +274,26 @@ TIMING GUIDANCE:
 ✓ ACCEPTABLE: "persistent threats from past week"
 ✗ BAD: Events from May 2025, November 2025, January 2026 without new updates
 
+WRITING STYLE - EXECUTIVE BRIEFING FORMAT:
+This is a morning briefing for busy executives, not a technical research paper.
+
+✓ Write for quick scanning - lead with "what happened" before technical details
+✓ Use plain language - avoid excessive acronyms and jargon  
+✓ Keep threat descriptions to 3-4 sentences maximum
+✓ If technical terms are necessary, briefly explain them in parentheses
+✓ Use concrete numbers and facts: "60 arrests", "30 wind farms", "published at 3pm"
+✓ Avoid dense technical explanations - save detail for Business Impact/Mitigation
+
+EXAMPLES OF GOOD VS BAD WRITING:
+
+✗ BAD (too dense): "The emerging Reynolds ransomware incorporates BYOVD (Bring-Your-Own-Vulnerable-Driver) techniques directly within the payload, deploying signed vulnerable NsecSoft NSecKrnl drivers to disable security software from kernel mode rather than requiring separate tool deployment."
+
+✓ GOOD (executive-friendly): "New ransomware uses advanced techniques to disable security software before attacking. This makes detection harder for companies. Manufacturing and energy firms are the primary targets, with 8 incidents in January alone."
+
+✗ BAD (too technical): "CISA added six actively exploited Microsoft Windows and Office vulnerabilities to its Known Exploited Vulnerabilities Catalog on February 10, 2026, including critical zero-day flaws affecting Windows Shell Protection (CVE-2026-21510), MSHTML (CVE-2026-21513), and Windows Remote Desktop Services."
+
+✓ GOOD (clear and scannable): "Microsoft patched six critical security flaws on February 10 that hackers are actively exploiting. The vulnerabilities allow attackers to take control of systems through malicious links or Office files with minimal user interaction."
+
 SLOW NEWS DAY: If limited breaking news, include recent week events but frame as "continued monitoring" or "elevated risk following recent..." Be honest in Analyst Confidence.
 
 ALWAYS GENERATE A REPORT. Even slow news days need threat assessments.`;
