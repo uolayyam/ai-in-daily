@@ -67,7 +67,7 @@ Make it actionable, specific, and professional. Focus on threats that are recent
 
 IMPORTANT: Search for real current information. Do not make up incidents or threats. If you cannot find enough current threats for a specific location or topic, focus on the areas where there ARE current threats.`;
 
-    // Call Claude API
+// Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -78,6 +78,12 @@ IMPORTANT: Search for real current information. Do not make up incidents or thre
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 8000,
+        tools: [
+          {
+            type: "web_search_20250305",
+            name: "web_search"
+          }
+        ],
         messages: [
           {
             role: 'user',
