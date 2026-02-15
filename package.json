@@ -15,9 +15,3 @@
     "node": ">=18.0.0"
   }
 }
-```
-
-**File 3: `.env.example`** (for reference)
-```
-CLAUDE_API_KEY=your_claude_api_key_here
-PORT=3000
