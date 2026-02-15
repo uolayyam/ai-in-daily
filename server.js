@@ -81,8 +81,8 @@ Mitigation: [One sentence - specific actionable steps]
 [Repeat for 2-3 threats per region - each starting with "As of ${today}"]
 
 CRITICAL FORMATTING RULES:
-1. Every threat description MUST start with "As of ${today},"
-2. Focus on events from the LAST 24 HOURS only
+1. Every threat description SHOULD start with "As of [specific date from search results]," (use actual date from the source)
+2. Focus on RECENT events from the past 24-48 hours
 3. Use specific numbers, times, and facts (e.g., "60 arrests overnight", "issued at 3pm EST")
 4. Be specific about timing: "overnight", "this morning", "announced today"
 5. Keep total report to 4-6 threats maximum
@@ -91,9 +91,10 @@ CRITICAL FORMATTING RULES:
 8. Use simple line breaks between paragraphs, not double breaks
 
 DO NOT:
-- Include generic ongoing situations
-- Use vague timeframes like "recent weeks"
-- Write about threats from more than 48 hours ago
+- Include generic ongoing situations without recent updates
+- Use vague timeframes like "recent weeks" or "in recent months"
+- Write about threats from more than 3-4 days ago unless there's a breaking update today
+- Add conversational explanations about why you can't find threats - JUST WRITE THE REPORT
 - Add conversational preamble
 - Use markdown formatting (no ** for bold)`;
     
