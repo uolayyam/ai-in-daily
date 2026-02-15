@@ -161,19 +161,6 @@ Output EXACTLY this structure (fill in the bracketed sections with actual threat
             border-bottom: 1px solid #e8e8e8;
             margin: 25px 0;
         }
-        .analyst-section {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #333;
-        }
-        .analyst-section h3 {
-            border-bottom: none;
-            margin: 0 0 15px 0;
-        }
-        .analyst-section p {
-            margin: 12px 0;
-            line-height: 1.8;
-        }
         strong { 
             font-weight: 600;
             color: #1a1a1a;
@@ -251,11 +238,10 @@ Output EXACTLY this structure (fill in the bracketed sections with actual threat
     <p class="business-impact"><strong>Business impact:</strong> [Impact]</p>
     <p class="mitigation"><strong>Mitigation:</strong> [Recommendation]</p>
     
-    <div class="analyst-section">
-        <h3>Analyst Confidence Assessment</h3>
-        <p><strong>Overall Threat Environment: [Level]</strong> - [Brief justification based on today's threat landscape]</p>
-        <p><strong>Confidence Level: [Level]</strong> — [Explain confidence level based on OSINT quality and sources used]</p>
-    </div>
+<h3 class="section">Analyst Confidence Assessment</h3>
+    
+    <p><strong>Overall Threat Environment: [Level]</strong> - [Brief justification based on today's threat landscape]</p>
+    <p><strong>Confidence Level: [Level]</strong> — [Explain confidence level based on OSINT quality and sources used]</p>
 </body>
 </html>
 
