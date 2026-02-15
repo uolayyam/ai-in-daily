@@ -36,8 +36,63 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
       day: 'numeric' 
     });
 
-const prompt = `Search for current threat intelligence and then write ONLY the final report content. Do not include any conversational preamble like "I'll search for..." or "Based on my research...". Start directly with "Daily Threat Outlook".
+const prompt = `You are a threat intelligence analyst writing today's Daily Threat Outlook.
 
+TODAY'S DATE: ${today}
+
+Search for threats and incidents that occurred TODAY or within the last 24 hours. Focus on:
+- Breaking news from the past day
+- Overnight developments
+- Events announced or confirmed today
+- New investigations or alerts issued today
+
+Write ONLY the final report. Do NOT include conversational text like "I'll search..." or "Based on my research...".
+
+START DIRECTLY WITH:
+
+Daily Threat Outlook
+
+Threats, Risks, and Mitigation
+
+${today}
+Customer Profile:
+- Assets: ${locations}
+- Interests: ${topics.join(' | ')}
+${regions ? `• Regional Focus: ${regions}` : ''}
+${industries ? `• Industry Focus: ${industries}` : ''}
+
+[Blank line]
+
+[Regional Section - e.g., "North America"]
+
+[Location]: [Specific Headline About TODAY's Threat]
+
+As of ${today}, [describe what happened today or overnight - be specific about timing]. [2-3 sentences with concrete details, numbers, quotes from officials]. [Context about why this matters now].
+
+Business impact: [One sentence - immediate operational impact]
+Mitigation: [One sentence - specific actionable steps]
+
+[Blank line]
+
+[Repeat for 2-3 threats per region - each starting with "As of ${today}"]
+
+CRITICAL FORMATTING RULES:
+1. Every threat description MUST start with "As of ${today},"
+2. Focus on events from the LAST 24 HOURS only
+3. Use specific numbers, times, and facts (e.g., "60 arrests overnight", "issued at 3pm EST")
+4. Be specific about timing: "overnight", "this morning", "announced today"
+5. Keep total report to 4-6 threats maximum
+6. Each threat = 2-3 paragraphs of description + business impact + mitigation
+7. Business impact and Mitigation = ONE sentence each
+8. Use simple line breaks between paragraphs, not double breaks
+
+DO NOT:
+- Include generic ongoing situations
+- Use vague timeframes like "recent weeks"
+- Write about threats from more than 48 hours ago
+- Add conversational preamble
+- Use markdown formatting (no ** for bold)`;
+    
 Format the report EXACTLY like this example structure:
 
 Daily Threat Outlook
