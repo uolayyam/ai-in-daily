@@ -38,9 +38,13 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
 
 const prompt = `You are a threat intelligence analyst writing today's Daily Threat Outlook.
 
-TODAY'S DATE: ${today}
+REPORT DATE: ${today}
 
-Search for threats and incidents that occurred TODAY or within the last 24 hours. Focus on:
+Search for threats and incidents from the PAST 24-48 HOURS (recent breaking events). Focus on:
+- Breaking developments from the past 1-2 days
+- Overnight incidents
+- Recently announced investigations or alerts
+- Current active threats
 - Breaking news from the past day
 - Overnight developments
 - Events announced or confirmed today
