@@ -36,37 +36,48 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
       day: 'numeric' 
     });
 
-    const prompt = `You are a professional threat intelligence analyst. Generate a comprehensive Daily Threat Outlook report for today (${today}).
+const prompt = `Search for current threat intelligence and then write ONLY the final report content. Do not include any conversational preamble like "I'll search for..." or "Based on my research...". Start directly with "Daily Threat Outlook".
 
+Format the report EXACTLY like this example structure:
+
+Daily Threat Outlook
+
+Threats, Risks, and Mitigation
+
+${today}
 Customer Profile:
-- Asset Locations: ${locations}
-- Interests: ${topics.join(', ')}
+- Assets: ${locations}
+- Interests: ${topics.join(' | ')}
 ${regions ? `- Regional Focus: ${regions}` : ''}
 ${industries ? `- Industry Focus: ${industries}` : ''}
 
-Using web search, find and analyze current threats relevant to:
-1. The specific cities/locations where they have assets
-2. Their topic interests
-3. Their regional focus areas (if provided)
-4. Their industry sectors (if provided)
+[Regional Section Header - e.g., "North America"]
 
-Create a professional threat intelligence report formatted like the example below. Use actual current threats from today's news, government advisories, cyber threat intelligence feeds, and OSINT sources.
+[City/Location]: [Clear Headline Describing the Threat]
 
-Format the report with these sections:
-- Brief introduction
-- Regional sections (organize by geography: North America, Asia-Pacific, Europe, Middle East, etc. as relevant)
-- For each threat/incident include:
-  * Clear headline describing the threat
-  * Detailed explanation with specific facts and data points
-  * Business impact assessment
-  * Mitigation recommendations
-- Global/Transnational threats section (if applicable)
-- Analyst confidence assessment at the end
+[2-3 paragraphs describing the threat with specific details, dates, and facts from web search]
 
-Make it actionable, specific, and professional. Focus on threats that are recent (within last 24-48 hours) and relevant to their profile.
+Business impact: [One clear sentence describing business impact]
+Mitigation: [One clear sentence with actionable recommendations]
 
-IMPORTANT: Search for real current information. Do not make up incidents or threats. If you cannot find enough current threats for a specific location or topic, focus on the areas where there ARE current threats.`;
+[Repeat for 2-3 threats per region]
 
+[Additional Regional Sections as needed - Asia-Pacific, Europe, Global/Transnational, etc.]
+
+Analyst Confidence Assessment
+
+Overall Threat Environment: [Assessment]
+Confidence Level: [High/Medium/Low] — [Brief justification]
+
+CRITICAL REQUIREMENTS:
+1. DO NOT include conversational text like "I'll conduct searches" or "Based on my research"
+2. Start directly with "Daily Threat Outlook" as the first line
+3. Use web search to find 4-6 REAL current threats from the last 24-48 hours
+4. Keep each threat description to 2-3 paragraphs maximum
+5. Business impact and Mitigation should each be ONE sentence
+6. Total report length: 1,000-1,500 words maximum
+7. Focus on threats relevant to their specific locations and interests
+8. Use professional intelligence report tone - factual, concise, actionable`;
 // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -102,13 +113,22 @@ IMPORTANT: Search for real current information. Do not make up incidents or thre
       });
     }
 
-    const data = await response.json();
+const data = await response.json();
     
     // Extract the text content from Claude's response
-    const reportText = data.content
+    let reportText = data.content
       .filter(block => block.type === 'text')
       .map(block => block.text)
       .join('\n\n');
+    
+    // Remove any conversational preamble (text before "Daily Threat Outlook")
+    const reportStart = reportText.indexOf('Daily Threat Outlook');
+    if (reportStart > 0) {
+      reportText = reportText.substring(reportStart);
+    }
+    
+    // Remove any conversational text at the beginning
+    reportText = reportText.replace(/^(I'll|Let me|Based on my research|I've|I will)[^]*?(?=Daily Threat Outlook)/i, '');
 
     res.json({
       success: true,
