@@ -36,67 +36,81 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
       day: 'numeric' 
     });
 
-const prompt = `You are a threat intelligence analyst writing today's Daily Threat Outlook.
+const prompt = `TODAY IS: ${today}
 
-REPORT DATE: ${today}
+You are a threat intelligence analyst. You MUST use web_search tool to find breaking news from TODAY (${today}) or the past 24 hours ONLY.
 
-Search for threats and incidents from the PAST 24-48 HOURS (recent breaking events). Focus on:
-- Breaking developments from the past 1-2 days
-- Overnight incidents
-- Recently announced investigations or alerts
-- Current active threats
-- Breaking news from the past day
-- Overnight developments
-- Events announced or confirmed today
-- New investigations or alerts issued today
+STEP 1: SEARCH FOR BREAKING NEWS
+Use web_search to find events from TODAY for each topic area:
+- Search: "cyber attack today ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}"
+- Search: "terrorism news today ${locations}"
+- Search: "civil unrest overnight ${locations}"
+- Search: "${regions} geopolitical tensions today"
+- Search: "${industries} security incident today"
 
-Write ONLY the final report. Do NOT include conversational text like "I'll search..." or "Based on my research...".
+Focus ONLY on events that happened:
+✓ TODAY (${today})
+✓ Overnight (past 12 hours)
+✓ Yesterday (past 24 hours)
+✗ IGNORE anything older than 48 hours
+✗ IGNORE May 2025 or January 2026 events unless there's a NEW development TODAY
 
-START DIRECTLY WITH:
+STEP 2: WRITE THE REPORT
+Write ONLY the report content. NO conversational text like "I searched..." or "Based on my findings...".
+
+Format EXACTLY like this:
 
 Daily Threat Outlook
 
 Threats, Risks, and Mitigation
 
 ${today}
+
 Customer Profile:
 - Assets: ${locations}
 - Interests: ${topics.join(' | ')}
 ${regions ? `• Regional Focus: ${regions}` : ''}
 ${industries ? `• Industry Focus: ${industries}` : ''}
 
-[Blank line]
+North America
 
-[Regional Section - e.g., "North America"]
+[City, State]: [Specific Breaking News Headline from TODAY]
+As of ${today}, [what happened overnight or today - include specific time if known]. [Include concrete numbers, official statements, or specific details from your web search]. [Why this matters now - business/operational risk].
 
-[Location]: [Specific Headline About TODAY's Threat]
+Business impact: [One sentence describing immediate operational impact to businesses in this location/sector]
 
-As of ${today}, [describe what happened today or overnight - be specific about timing]. [2-3 sentences with concrete details, numbers, quotes from officials]. [Context about why this matters now].
+Mitigation: [One actionable recommendation for risk reduction]
 
-Business impact: [One sentence - immediate operational impact]
-Mitigation: [One sentence - specific actionable steps]
+[Repeat 2-3 threats for North America if ${locations} includes US cities]
 
-[Blank line]
+${regions ? `\n${regions}\n\n[Similar format - 2-3 threats from ${regions} region based on TODAY's breaking news]` : ''}
 
-[Repeat for 2-3 threats per region - each starting with "As of ${today}"]
+${industries ? `\n${industries.split(',')[0]} Sector\n\n[Similar format - 1-2 threats affecting ${industries} based on TODAY's news]` : ''}
 
-CRITICAL FORMATTING RULES:
-1. Every threat description SHOULD start with "As of [specific date from search results]," (use actual date from the source)
-2. Focus on RECENT events from the past 24-48 hours
-3. Use specific numbers, times, and facts (e.g., "60 arrests overnight", "issued at 3pm EST")
-4. Be specific about timing: "overnight", "this morning", "announced today"
-5. Keep total report to 4-6 threats maximum
-6. Each threat = 2-3 paragraphs of description + business impact + mitigation
-7. Business impact and Mitigation = ONE sentence each
-8. Use simple line breaks between paragraphs, not double breaks
+Global / Transnational
 
-DO NOT:
-- Include generic ongoing situations without recent updates
-- Use vague timeframes like "recent weeks" or "in recent months"
-- Write about threats from more than 3-4 days ago unless there's a breaking update today
-- Add conversational explanations about why you can't find threats - JUST WRITE THE REPORT
-- Add conversational preamble
-- Use markdown formatting (no ** for bold)`;
+[Global Breaking Threat from TODAY affecting all locations]
+
+Analyst Confidence Assessment
+Overall Threat Environment: [Low/Moderate/Elevated/High] - [brief justification based on today's events]
+
+Confidence Level: [Low/Medium/High] — [explain why]
+
+CRITICAL RULES:
+1. Every threat MUST include "As of ${today}," in the first sentence
+2. ONLY use events from TODAY or past 24 hours (search results should all be recent)
+3. Include specific details: "60 arrests", "3pm EST", "overnight Friday"
+4. Total of 4-6 threats maximum
+5. NO events from May, June, January, or any month older than 2 days ago
+6. If you can't find recent events for a location, search broader: "breaking news [city] today"
+7. Use • for bullet points in Customer Profile section
+8. Do NOT use markdown bold (**) anywhere
+
+TIMING EXAMPLES:
+✓ GOOD: "As of Monday, February 10, overnight arrests..." (happened last night)
+✓ GOOD: "As of Monday, February 10, federal authorities confirmed today..." (announced today)
+✗ BAD: "As of February 10, the May 21 shooting..." (event is 9 months old)
+✗ BAD: "As of January 2026..." (event is a month old)`;
     
 // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
