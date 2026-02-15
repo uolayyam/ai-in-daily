@@ -141,12 +141,13 @@ Output EXACTLY this structure (fill in the bracketed sections with actual threat
             font-weight: 700;
             line-height: 1.4;
         }
-        .customer-profile {
+.customer-profile {
             margin: 20px 0;
         }
         .customer-profile p {
             margin: 10px 0;
             font-weight: 600;
+            font-size: 11pt;
         }
         .customer-profile ul {
             margin: 5px 0 15px 0;
@@ -156,10 +157,15 @@ Output EXACTLY this structure (fill in the bracketed sections with actual threat
         .customer-profile li {
             margin: 4px 0;
             line-height: 1.6;
+            font-weight: 400;
+            font-size: 11pt;
         }
         .customer-profile li:before {
             content: "• ";
             font-weight: normal;
+        }
+        .customer-profile li strong {
+            font-weight: 600;
         }
         .threat-description {
             margin: 10px 0;
