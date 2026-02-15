@@ -221,8 +221,8 @@ Output EXACTLY this structure (fill in the bracketed sections with actual threat
     <div class="divider"></div>
     ` : ''}
     
-    ${industries ? `
-    <h3 class="section">${industries.split(',')[0]} Sector</h3>
+${industries ? `
+    <h3 class="section">${industries.split(',')[0].trim().charAt(0).toUpperCase() + industries.split(',')[0].trim().slice(1)} Sector</h3>
     
     <h4 class="threat-title">[Sector-Specific Threat Headline]</h4>
     <p class="threat-description">As of ${today}, [describe sector threat]. [Details].</p>
