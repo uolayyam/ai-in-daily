@@ -76,8 +76,8 @@ IMPORTANT: Search for real current information. Do not make up incidents or thre
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 8000,
+        model: 'claude-haiku-4-20250514',
+        max_tokens: 4000,
         tools: [
           {
             type: "web_search_20250305",
