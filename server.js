@@ -38,27 +38,61 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
 
 const prompt = `TODAY IS: ${today}
 
-You are a threat intelligence analyst. You MUST use web_search tool to find breaking news from TODAY (${today}) or the past 24 hours ONLY.
+You are a threat intelligence analyst writing a Daily Threat Outlook based on open-source intelligence (OSINT). This report is generated every morning for a customer to review their personalized threat landscape.
 
-STEP 1: SEARCH FOR BREAKING NEWS
-Use web_search to find events from TODAY for each topic area:
-- Search: "cyber attack today ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}"
-- Search: "terrorism news today ${locations}"
-- Search: "civil unrest overnight ${locations}"
-- Search: "${regions} geopolitical tensions today"
-- Search: "${industries} security incident today"
+STEP 1: COMPREHENSIVE OSINT THREAT SEARCH
+Use web_search to find relevant threats across these timeframes:
+1. PRIORITY: Breaking news from past 24 hours
+2. RECENT: Developing situations from past 48-72 hours (weekend events if today is Monday)
+3. FORWARD-LOOKING: Upcoming threats in next 24-72 hours
+4. PERSISTENT: Ongoing threats relevant to customer profile
 
-Focus ONLY on events that happened:
-✓ TODAY (${today})
-✓ Overnight (past 12 hours)
-✓ Yesterday (past 24 hours)
-✗ IGNORE anything older than 48 hours
-✗ IGNORE May 2025 or January 2026 events unless there's a NEW development TODAY
+Search authoritative OSINT sources across these categories:
 
-STEP 2: WRITE THE REPORT
-Write ONLY the report content. NO conversational text like "I searched..." or "Based on my findings...".
+GOVERNMENT/OFFICIAL ADVISORIES (highest priority):
+- "site:cisa.gov alert ${new Date().toLocaleDateString('en-US', { month: 'long' })} 2026"
+- "site:fbi.gov ${locations}"
+- "site:dhs.gov advisory"
 
-Format EXACTLY like this:
+CYBERSECURITY THREAT INTELLIGENCE:
+- "site:bleepingcomputer.com ${industries} attack"
+- "site:therecord.media ransomware ${new Date().toLocaleDateString('en-US', { month: 'long' })} 2026"
+- "CVE vulnerability ${industries} 2026"
+
+GEOPOLITICAL & BREAKING NEWS:
+- "site:reuters.com ${regions} ${new Date().toLocaleDateString('en-US', { month: 'long' })} 2026"
+- "site:apnews.com ${regions} conflict"
+- "site:bloomberg.com ${industries} security"
+
+LOCATION-SPECIFIC NEWS:
+- "${locations} security incident this week"
+- "${locations} protest civil unrest recent"
+- "site:washingtonpost.com DC security" (for DC-specific)
+
+SECTOR-SPECIFIC:
+- "${industries} sector cyberattack recent"
+- "critical infrastructure ${industries} threat 2026"
+- "site:energyintel.com ${industries}" (for energy sector)
+
+When reporting threats, include source attribution where possible:
+- "According to CISA advisory..."
+- "FBI reports..."
+- "Reuters confirmed..."
+- "BleepingComputer analysis shows..."
+
+This establishes credibility and allows customers to verify information.
+
+STEP 2: WRITE THE DAILY THREAT OUTLOOK
+
+Generate a comprehensive report with 4-6 threats covering:
+- Location-specific threats (Washington DC, Chicago, Houston, etc.)
+- Regional threats (Asia-Pacific, etc.)
+- Sector/industry threats (energy, manufacturing, etc.)
+- Global/transnational threats
+
+Format EXACTLY as shown below. Write ONLY the report - NO conversational preamble.
+
+---
 
 Daily Threat Outlook
 
@@ -74,43 +108,105 @@ ${industries ? `• Industry Focus: ${industries}` : ''}
 
 North America
 
-[City, State]: [Specific Breaking News Headline from TODAY]
-As of ${today}, [what happened overnight or today - include specific time if known]. [Include concrete numbers, official statements, or specific details from your web search]. [Why this matters now - business/operational risk].
+${locations.includes('Washington') || locations.includes('DC') ? `
+Washington DC: [Specific Threat Headline]
 
-Business impact: [One sentence describing immediate operational impact to businesses in this location/sector]
+As of ${today}, [describe the threat - be specific about timing]. [2-3 sentences with details]. [Why this matters for businesses].
 
-Mitigation: [One actionable recommendation for risk reduction]
+Business impact: [One sentence on operational impact]
 
-[Repeat 2-3 threats for North America if ${locations} includes US cities]
+Mitigation: [One specific actionable recommendation]
+` : ''}
 
-${regions ? `\n${regions}\n\n[Similar format - 2-3 threats from ${regions} region based on TODAY's breaking news]` : ''}
+${locations.includes('Chicago') ? `
+Chicago IL: [Specific Threat Headline]
 
-${industries ? `\n${industries.split(',')[0]} Sector\n\n[Similar format - 1-2 threats affecting ${industries} based on TODAY's news]` : ''}
+As of ${today}, [describe the threat]. [Details and context].
+
+Business impact: [Impact statement]
+
+Mitigation: [Recommendation]
+` : ''}
+
+${locations.includes('Houston') ? `
+Houston TX: [Specific Threat Headline]
+
+As of ${today}, [describe the threat]. [Details and context].
+
+Business impact: [Impact statement]
+
+Mitigation: [Recommendation]
+` : ''}
+
+${regions ? `
+${regions}
+
+[Regional Threat Headline]
+
+As of ${today}, [describe regional threat affecting customer's focus area]. [Details].
+
+Business impact: [Impact]
+
+Mitigation: [Recommendation]
+` : ''}
+
+${industries ? `
+${industries.split(',')[0]} Sector
+
+[Sector-Specific Threat Headline]
+
+As of ${today}, [describe sector threat]. [Details].
+
+Business impact: [Impact]
+
+Mitigation: [Recommendation]
+` : ''}
 
 Global / Transnational
 
-[Global Breaking Threat from TODAY affecting all locations]
+[Global Threat Relevant to Customer Profile]
+
+As of ${today}, [describe global threat]. [Details].
+
+Business impact: [Impact]
+
+Mitigation: [Recommendation]
 
 Analyst Confidence Assessment
-Overall Threat Environment: [Low/Moderate/Elevated/High] - [brief justification based on today's events]
 
-Confidence Level: [Low/Medium/High] — [explain why]
+Overall Threat Environment: [Low/Moderate/Elevated/High] - [Brief justification based on today's threat landscape]
 
-CRITICAL RULES:
-1. Every threat MUST include "As of ${today}," in the first sentence
-2. ONLY use events from TODAY or past 24 hours (search results should all be recent)
-3. Include specific details: "60 arrests", "3pm EST", "overnight Friday"
-4. Total of 4-6 threats maximum
-5. NO events from May, June, January, or any month older than 2 days ago
-6. If you can't find recent events for a location, search broader: "breaking news [city] today"
-7. Use • for bullet points in Customer Profile section
-8. Do NOT use markdown bold (**) anywhere
+Confidence Level: [Low/Medium/High] — [Explain confidence level based on available OSINT and search results quality]
 
-TIMING EXAMPLES:
-✓ GOOD: "As of Monday, February 10, overnight arrests..." (happened last night)
-✓ GOOD: "As of Monday, February 10, federal authorities confirmed today..." (announced today)
-✗ BAD: "As of February 10, the May 21 shooting..." (event is 9 months old)
-✗ BAD: "As of January 2026..." (event is a month old)`;
+---
+
+CRITICAL FORMATTING RULES:
+1. Every threat starts with "As of ${today},"
+2. Include 4-6 total threats (mix of location, regional, sector, global)
+3. Business impact = ONE sentence
+4. Mitigation = ONE actionable sentence
+5. Use simple line breaks between sections
+6. Use • for bullets in Customer Profile only
+7. NO markdown bold (**) anywhere
+
+TIMING GUIDANCE:
+✓ IDEAL: "As of ${today}, overnight incidents..."
+✓ IDEAL: "As of ${today}, authorities announced today..."
+✓ GOOD: "As of ${today}, continued monitoring following Friday's incident..."
+✓ ACCEPTABLE: "As of ${today}, elevated risk detected following recent attacks this week..."
+✓ FORWARD-LOOKING: "As of ${today}, protests expected in next 48 hours..."
+
+✗ BAD: Events from May 2025, November 2025, January 2026 UNLESS there's a new development today
+✗ BAD: Generic statements without specific incidents or timeframes
+
+SLOW NEWS DAY HANDLING:
+If limited breaking news from past 24 hours:
+- Include developing situations from past week
+- Add forward-looking threats (next 24-72 hours)
+- Reference persistent/ongoing threats
+- Be honest in Analyst Confidence section: "Limited breaking activity detected today. Assessment based on recent week trends and persistent threats."
+
+ALWAYS GENERATE A REPORT. Even slow news days need threat assessments - that's the value proposition.`;
     
 // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
