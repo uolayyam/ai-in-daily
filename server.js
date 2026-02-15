@@ -93,46 +93,6 @@ DO NOT:
 - Add conversational preamble
 - Use markdown formatting (no ** for bold)`;
     
-Format the report EXACTLY like this example structure:
-
-Daily Threat Outlook
-
-Threats, Risks, and Mitigation
-
-${today}
-Customer Profile:
-- Assets: ${locations}
-- Interests: ${topics.join(' | ')}
-${regions ? `- Regional Focus: ${regions}` : ''}
-${industries ? `- Industry Focus: ${industries}` : ''}
-
-[Regional Section Header - e.g., "North America"]
-
-[City/Location]: [Clear Headline Describing the Threat]
-
-[2-3 paragraphs describing the threat with specific details, dates, and facts from web search]
-
-Business impact: [One clear sentence describing business impact]
-Mitigation: [One clear sentence with actionable recommendations]
-
-[Repeat for 2-3 threats per region]
-
-[Additional Regional Sections as needed - Asia-Pacific, Europe, Global/Transnational, etc.]
-
-Analyst Confidence Assessment
-
-Overall Threat Environment: [Assessment]
-Confidence Level: [High/Medium/Low] — [Brief justification]
-
-CRITICAL REQUIREMENTS:
-1. DO NOT include conversational text like "I'll conduct searches" or "Based on my research"
-2. Start directly with "Daily Threat Outlook" as the first line
-3. Use web search to find 4-6 REAL current threats from the last 24-48 hours
-4. Keep each threat description to 2-3 paragraphs maximum
-5. Business impact and Mitigation should each be ONE sentence
-6. Total report length: 1,000-1,500 words maximum
-7. Focus on threats relevant to their specific locations and interests
-8. Use professional intelligence report tone - factual, concise, actionable`;
 // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
