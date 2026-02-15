@@ -87,7 +87,7 @@ CRITICAL REQUIREMENTS:
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-20250514',
+        model: 'claude-haiku-4-20251022',
         max_tokens: 4000,
         tools: [
           {
