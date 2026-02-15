@@ -71,7 +71,21 @@ SECTOR-SPECIFIC:
 - "${industries} cyberattack recent"
 - "critical infrastructure ${industries} threat"
 
-STEP 2: OUTPUT AS HTML
+STEP 2: PARSE USER INPUTS AND SEARCH
+
+ASSET LOCATIONS PROVIDED: ${locations}
+Parse this as a comma-separated list. For EACH location, you must:
+1. Search for location-specific threats: "[city] security incident today", "[city] protest", "[city] crime"
+2. Create a threat entry specifically for that location
+3. Make it geographically specific (not generic national threats)
+
+REGIONAL FOCUS PROVIDED: ${regions || 'None'}
+${regions ? `Create 1-2 threats specific to the ${regions} region` : 'Skip regional section'}
+
+INDUSTRY SECTORS PROVIDED: ${industries || 'None'}
+${industries ? `Create 1-2 threats specific to the ${industries.split(',').map(i => i.trim()).join(' and ')} sector(s)` : 'Skip sector section'}
+
+STEP 3: OUTPUT AS HTML
 
 Generate a complete HTML document with inline styles for professional PDF printing.
 
@@ -185,31 +199,28 @@ Output EXACTLY this structure (fill in the bracketed sections with actual threat
         </ul>
     </div>
     
-    <h3 class="section">North America</h3>
+<h3 class="section">Asset Locations</h3>
     
-    ${locations.includes('Washington') || locations.includes('DC') ? `
-    <h4 class="threat-title">Washington DC: [Specific Threat Headline]</h4>
-    <p class="threat-description">As of ${today}, [describe the threat with specific timing and details]. [2-3 sentences with concrete facts]. [Why this matters for businesses].</p>
-    <p class="business-impact"><strong>Business impact:</strong> [One sentence on operational impact]</p>
-    <p class="mitigation"><strong>Mitigation:</strong> [One specific actionable recommendation]</p>
-    <div class="divider"></div>
-    ` : ''}
+    <!-- Generate one threat section for EACH location in: ${locations} -->
+    <!-- Parse the locations string, split by commas, and create a threat for each -->
+    <!-- Format for each location:
     
-    ${locations.includes('Chicago') ? `
-    <h4 class="threat-title">Chicago IL: [Specific Threat Headline]</h4>
-    <p class="threat-description">As of ${today}, [describe threat]. [Details and context].</p>
-    <p class="business-impact"><strong>Business impact:</strong> [Impact statement]</p>
-    <p class="mitigation"><strong>Mitigation:</strong> [Recommendation]</p>
+    <h4 class="threat-title">[City, State/Country]: [Specific Local Incident]</h4>
+    <p class="threat-description">As of ${today}, [location-specific details]...</p>
+    <p class="business-impact"><strong>Business impact:</strong> [local impact]</p>
+    <p class="mitigation"><strong>Mitigation:</strong> [local recommendation]</p>
     <div class="divider"></div>
-    ` : ''}
     
-    ${locations.includes('Houston') ? `
-    <h4 class="threat-title">Houston TX: [Specific Threat Headline]</h4>
-    <p class="threat-description">As of ${today}, [describe threat]. [Details and context].</p>
-    <p class="business-impact"><strong>Business impact:</strong> [Impact statement]</p>
-    <p class="mitigation"><strong>Mitigation:</strong> [Recommendation]</p>
+    -->
+    <!-- The AI should parse this list and create one threat entry per location -->
+    
+    [For each location in "${locations}", create a section following this format:]
+    
+    <h4 class="threat-title">[City Name]: [Location-Specific Incident Headline]</h4>
+    <p class="threat-description">As of ${today}, [describe a threat SPECIFIC to this city - local protests, incidents, crimes, cyber attacks affecting local businesses]. [Must be geographically specific to this city]. [Include local landmarks, streets, or neighborhoods if available].</p>
+    <p class="business-impact"><strong>Business impact:</strong> [How this affects businesses in this specific city]</p>
+    <p class="mitigation"><strong>Mitigation:</strong> [City-specific actionable steps]</p>
     <div class="divider"></div>
-    ` : ''}
     
     ${regions ? `
     <h3 class="section">${regions}</h3>
@@ -248,11 +259,14 @@ ${industries ? `
 CRITICAL RULES:
 1. Output ONLY the HTML - no conversational text before or after
 2. Every threat starts with "As of ${today},"
-3. Include 4-6 threats total (mix location, regional, sector, global)
-4. Fill in ALL bracketed [placeholders] with actual content
-5. Business impact and Mitigation = ONE sentence each
-6. Include source attribution where possible: "According to CISA...", "FBI reports..."
-7. Remove the divider after the last threat in each section
+3. DYNAMICALLY CREATE SECTIONS: Parse the user inputs (locations: "${locations}", regions: "${regions || 'none'}", industries: "${industries || 'none'}") and create threat entries for EACH item provided
+4. Do NOT skip any location - if the user provided 5 cities, create 5 location-specific threats
+5. Each threat must be SPECIFIC to that location/region/sector - not generic
+6. Include 4-6 threats total (mix location, regional, sector, global)
+7. Fill in ALL bracketed [placeholders] with actual content
+8. Business impact and Mitigation = ONE sentence each
+9. Include source attribution where possible: "According to CISA...", "FBI reports..."
+10. Remove the divider after the last threat in each section
 
 TIMING GUIDANCE:
 ✓ IDEAL: "overnight incidents", "announced today", "confirmed this morning"
