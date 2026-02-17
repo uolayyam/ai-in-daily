@@ -389,8 +389,30 @@ ALWAYS GENERATE A REPORT. Even slow news days need threat assessments.`;
 // Determine which API to call based on selected model
     let response;
     
-    if (model === 'gpt-4o') {
-      // Call OpenAI GPT-4o
+if (model === 'gpt-4o-mini') {
+      // Call OpenAI GPT-4o-mini (cheaper)
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a threat intelligence analyst. Generate threat reports in HTML format as instructed.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 4000
+        })
+      });
+    } else if (model === 'gpt-4o') {
       response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
