@@ -2,6 +2,11 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+// Ensure fetch exists (Node 18+ has it; fallback to node-fetch if not)
+const fetch =
+  global.fetch ||
+  ((...args) => import('node-fetch').then(({ default: fetchFn }) => fetchFn(...args)));
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -14,7 +19,7 @@ app.get('/', (req, res) => {
 
 app.post('/api/generate-threat-outlook', async (req, res) => {
   try {
-    const { locations, topics, regions, industries, model } = req.body;
+    const { locations, topics, regions, industries } = req.body;
 
     if (!locations || locations.length === 0) {
       return res.status(400).json({ error: 'Asset locations are required' });
@@ -101,9 +106,7 @@ Confidence Level: Medium
 </body>
 </html>`;
 
-    let response;
-
-    response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -135,15 +138,34 @@ Confidence Level: Medium
     }
 
     const data = await response.json();
-    let reportHTML = data.choices[0].message.content;
+    let reportHTML = data.choices?.[0]?.message?.content || '';
 
     // Remove markdown fences if present
-    reportHTML = reportHTML.replace(/```html/g, '').replace(/```/g, '');
+    reportHTML = reportHTML.replace(/```html\s*/gi, '').replace(/```\s*/g, '');
 
-    // Remove URLs if model still includes them
-    reportHTML = reportHTML.replace(/https?:\/\/\S+/g, '');
+    // Remove URLs
+    reportHTML = reportHTML.replace(/https?:\/\/\S+/gi, '');
+
+    // Remove common citation/source artifacts that search-preview sometimes inserts
+    reportHTML = reportHTML.replace(/\[\s*\d+\s*\]/g, ''); // [1]
+    reportHTML = reportHTML.replace(/\[\s*source[s]?\s*\]/gi, ''); // [source], [sources]
+    reportHTML = reportHTML.replace(
+      /Source:\s*.*?(<br\s*\/?>|\n|<\/p>)/gi,
+      '$1'
+    );
+    reportHTML = reportHTML.replace(
+      /References:\s*.*?(<br\s*\/?>|\n|<\/p>)/gi,
+      '$1'
+    );
+    reportHTML = reportHTML.replace(
+      /Citations:\s*.*?(<br\s*\/?>|\n|<\/p>)/gi,
+      '$1'
+    );
+
+    // Clean empty parentheses left behind
     reportHTML = reportHTML.replace(/\(\s*\)/g, '');
 
+    // Remove any conversational preamble (text before "<!DOCTYPE html>")
     const htmlStart = reportHTML.indexOf('<!DOCTYPE html>');
     if (htmlStart > 0) {
       reportHTML = reportHTML.substring(htmlStart);
