@@ -182,15 +182,19 @@ SECTION STRUCTURE RULES:
 - End with "Analyst Confidence Assessment"
 
 STRICT RULES:
+0. WHAT COUNTS AS A THREAT — CRITICAL: Only include items that represent an active security risk RIGHT NOW or within the next 72 hours. NEVER include: future scheduled events (protests weeks away, conferences, summits), events older than 14 days unless still actively escalating, or news stories that are not security threats (awards, announcements, summits).
 1. Every city in "${locations}" MUST have a UNIQUE threat — never repeat the same story for two cities
-2. Washington DC threats = focus on federal government, Capitol Hill, DC metro, federal agencies
-3. Do NOT use inline URLs or hyperlinks — no "[source.com]" in the text
-4. Use accurate dates — do NOT say "As of ${today}" for an event that happened 2 weeks ago. Say "On [actual date]..." then "As of ${today}, [current status/risk]..."
-5. Geography: Asia-Pacific = East/Southeast Asia + Pacific. NOT Pakistan, India, Middle East
-6. Descriptions = 3-5 sentences. Business Impact = 2-3 sentences. Mitigation = 2-3 sentences
-7. Use specific facts: numbers, percentages, named organizations, named threat actors where known
-8. Forward-looking language: "risk of follow-on activity", "elevated through the weekend", "indicators suggest..."
-9. Output ONLY the HTML document — no text before or after
+2. NO INLINE URLS — never include hyperlinks or source URLs in the report text. No "[source.com]" anywhere.
+3. ASIA-PACIFIC ONLY includes: China, Japan, South Korea, Taiwan, Australia, New Zealand, Southeast Asia (Thailand, Vietnam, Philippines, Indonesia, Malaysia, Singapore), Pacific Islands. Pakistan, India, Afghanistan, Bangladesh = South Asia. NEVER put South Asia in the Asia-Pacific section.
+4. If you cannot find a relevant current threat for a section, write about the elevated persistent threat environment for that location — do not fill it with irrelevant old news or future events.
+5. Washington DC threats = focus on federal government, Capitol Hill, DC metro, federal agencies
+6. Do NOT use inline URLs or hyperlinks — no "[source.com]" in the text
+7. Use accurate dates — do NOT say "As of ${today}" for an event that happened 2 weeks ago. Say "On [actual date]..." then "As of ${today}, [current status/risk]..."
+8. Geography: Asia-Pacific = East/Southeast Asia + Pacific. NOT Pakistan, India, Middle East
+9. Descriptions = 3-5 sentences. Business Impact = 2-3 sentences. Mitigation = 2-3 sentences
+10. Use specific facts: numbers, percentages, named organizations, named threat actors where known
+11. Forward-looking language: "risk of follow-on activity", "elevated through the weekend", "indicators suggest..."
+12. Output ONLY the HTML document — no text before or after
 
 STEP 3: OUTPUT AS HTML
 
@@ -277,7 +281,7 @@ if (model === 'gpt-4o-mini') {
               content: prompt
             }
           ],
-          max_tokens: 8000
+          max_tokens: 12000
         })
       });
     } else if (model === 'claude-sonnet') {
