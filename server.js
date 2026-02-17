@@ -14,10 +14,92 @@ app.get('/', (req, res) => {
   res.json({ status: 'Daily Threat Outlook API is running' });
 });
 
+// Check API credits endpoint
+app.get('/api/check-credits', async (req, res) => {
+  try {
+    const credits = {
+      claude: { available: 0, error: null },
+      openai: { available: 0, error: null }
+    };
+    
+    // Check Claude credits (Anthropic doesn't have a direct credits API, so we'll use a workaround)
+    try {
+      const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.CLAUDE_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 10,
+          messages: [{ role: 'user', content: 'test' }]
+        })
+      });
+      
+      if (claudeResponse.ok) {
+        // If API call succeeds, credits are available
+        // Note: Anthropic doesn't expose credit balance directly
+        credits.claude.available = true;
+        credits.claude.message = 'API key valid - balance check not available via API';
+      } else {
+        const errorData = await claudeResponse.json();
+        credits.claude.error = errorData.error?.message || 'API call failed';
+        credits.claude.available = false;
+      }
+    } catch (error) {
+      credits.claude.error = error.message;
+      credits.claude.available = false;
+    }
+    
+    // Check OpenAI credits
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        // OpenAI also doesn't have a direct credits endpoint, but we can check if key is valid
+        const openaiResponse = await fetch('https://api.openai.com/v1/models', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+          }
+        });
+        
+        if (openaiResponse.ok) {
+          credits.openai.available = true;
+          credits.openai.message = 'API key valid - balance check not available via API';
+        } else {
+          const errorData = await openaiResponse.json();
+          credits.openai.error = errorData.error?.message || 'API call failed';
+          credits.openai.available = false;
+        }
+      } catch (error) {
+        credits.openai.error = error.message;
+        credits.openai.available = false;
+      }
+    } else {
+      credits.openai.available = false;
+      credits.openai.error = 'No OpenAI API key configured';
+    }
+    
+    res.json({
+      success: true,
+      credits: credits,
+      note: 'Neither Anthropic nor OpenAI provide direct API credit balance endpoints. This checks if API keys are valid and working.'
+    });
+    
+  } catch (error) {
+    console.error('Credit Check Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to check credits',
+      message: error.message 
+    });
+  }
+});
+
 // Generate threat outlook endpoint
 app.post('/api/generate-threat-outlook', async (req, res) => {
   try {
-    const { locations, topics, regions, industries } = req.body;
+    const { locations, topics, regions, industries, model } = req.body;
 
     // Validate input
     if (!locations || locations.length === 0) {
@@ -304,31 +386,85 @@ SLOW NEWS DAY: If limited breaking news, include recent week events but frame as
 
 ALWAYS GENERATE A REPORT. Even slow news days need threat assessments.`;
     
-// Call Claude API
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.CLAUDE_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 4000,
-        tools: [
-          {
-            type: "web_search_20250305",
-            name: "web_search"
-          }
-        ],
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      })
-    });
+// Determine which API to call based on selected model
+    let response;
+    
+    if (model === 'gpt-4o') {
+      // Call OpenAI GPT-4o
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a threat intelligence analyst. Use web search to find current threats and generate reports in HTML format.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 4000
+        })
+      });
+    } else if (model === 'claude-sonnet') {
+      // Call Claude Sonnet 4.5
+      response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.CLAUDE_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5-20250929',
+          max_tokens: 4000,
+          tools: [
+            {
+              type: "web_search_20250305",
+              name: "web_search"
+            }
+          ],
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
+        })
+      });
+    } else {
+      // Default: Claude Haiku 4.5 (cheapest)
+      response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.CLAUDE_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 4000,
+          tools: [
+            {
+              type: "web_search_20250305",
+              name: "web_search"
+            }
+          ],
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
+        })
+      });
+    }
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -341,11 +477,19 @@ ALWAYS GENERATE A REPORT. Even slow news days need threat assessments.`;
 
 const data = await response.json();
     
-    // Extract the HTML content from Claude's response
-    let reportHTML = data.content
-      .filter(block => block.type === 'text')
-      .map(block => block.text)
-      .join('\n\n');
+    // Extract HTML content - format differs by provider
+    let reportHTML;
+    
+    if (model === 'gpt-4o') {
+      // OpenAI format
+      reportHTML = data.choices[0].message.content;
+    } else {
+      // Claude format
+      reportHTML = data.content
+        .filter(block => block.type === 'text')
+        .map(block => block.text)
+        .join('\n\n');
+    }
     
     // Remove any conversational preamble (text before "<!DOCTYPE html>")
     const htmlStart = reportHTML.indexOf('<!DOCTYPE html>');
