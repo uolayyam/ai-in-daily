@@ -499,8 +499,8 @@ const data = await response.json();
     // Extract HTML content - format differs by provider
     let reportHTML;
     
-    if (model === 'gpt-4o') {
-      // OpenAI format
+if (model === 'gpt-4o' || model === 'gpt-4o-mini') {
+  // OpenAI format
       reportHTML = data.choices[0].message.content;
     } else {
       // Claude format
