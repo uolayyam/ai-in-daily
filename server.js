@@ -197,14 +197,11 @@ HERE IS THE FULL HTML TEMPLATE — output this exactly, replacing only the [PLAC
     margin: 50px;
     line-height: 1.7;
     color: #1a1a1a;
-    font-size: 14px;
   }
   h2 {
-    font-size: 20px;
     margin: 0 0 2px 0;
   }
   h3 {
-    font-size: 16px;
     margin: 25px 0 10px 0;
   }
   p {
@@ -226,7 +223,7 @@ HERE IS THE FULL HTML TEMPLATE — output this exactly, replacing only the [PLAC
 <body>
 
 <h2>Daily Threat Outlook</h2>
-<h2 style="font-weight: normal; font-size: 16px; margin: 0 0 5px 0;">Threats, Risks, and Mitigation</h2>
+<h2 style="font-weight: normal; margin: 0 0 5px 0;">Threats, Risks, and Mitigation</h2>
 <p style="margin: 0;"><strong>${today}</strong></p>
 <p style="margin: 5px 0 0 0;"><strong>Customer Profile:</strong></p>
 ${profileBullets}
