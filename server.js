@@ -160,9 +160,16 @@ Parse this as a comma-separated list. For EACH location, you must:
 1. Search for location-specific threats: "[city] security incident today", "[city] protest", "[city] crime"
 2. Create a threat entry specifically for that location
 3. Make it geographically specific (not generic national threats)
+4. CRITICAL: Each location MUST have a DIFFERENT story. Never use the same incident for two different cities. If you cannot find a unique story for a city, search harder or use the closest relevant regional threat.
 
 REGIONAL FOCUS PROVIDED: ${regions || 'None'}
 ${regions ? `Create 1-2 threats specific to the ${regions} region` : 'Skip regional section'}
+
+GEOGRAPHY RULES:
+- Asia-Pacific includes: China, Japan, South Korea, Australia, Southeast Asia, Pacific Islands, Taiwan, Hong Kong
+- Asia-Pacific does NOT include: Pakistan, India, Afghanistan, Iran, Middle East — those are South Asia or Middle East
+- Middle East includes: Saudi Arabia, UAE, Israel, Iraq, Syria, Jordan, Yemen
+- Always double-check that your regional threat actually belongs in the stated region
 
 INDUSTRY SECTORS PROVIDED: ${industries || 'None'}
 ${industries ? `Create 1-2 threats specific to the ${industries.split(',').map(i => i.trim()).join(' and ')} sector(s)` : 'Skip sector section'}
@@ -358,6 +365,12 @@ TIMING GUIDANCE:
 ✓ GOOD: "following Friday's incident", "this week's developments"
 ✓ ACCEPTABLE: "persistent threats from past week"
 ✗ BAD: Events from May 2025, November 2025, January 2026 without new updates
+
+DATE FRAMING RULES — CRITICAL:
+- Do NOT write "As of ${today}" for events that happened on a different date
+- Instead use the actual date: "On February 3, 2026..." or "Last week..." or "In December 2025..."
+- Only use "As of ${today}" for ongoing/persistent threats that are still active today
+- Example of correct framing: "On February 6, a bombing occurred in Islamabad. As of today, security alerts remain elevated."
 
 WRITING STYLE - EXECUTIVE BRIEFING FORMAT:
 This is a morning briefing for busy executives, not a technical research paper.
