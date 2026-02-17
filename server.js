@@ -258,7 +258,7 @@ if (model === 'gpt-4o-mini') {
           max_tokens: 4000
         })
       });
-    } else if (model === 'gpt-4o') {
+} else if (model === 'gpt-4o') {
       response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -266,18 +266,18 @@ if (model === 'gpt-4o-mini') {
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'gpt-4o-search-preview',
           messages: [
             {
               role: 'system',
-              content: 'You are a threat intelligence analyst. Use web search to find current threats and generate reports in HTML format.'
+              content: 'You are a senior threat intelligence analyst. Use your web search capability to find current, real threats from today and recent days. Generate professional threat reports in HTML format as instructed.'
             },
             {
               role: 'user',
               content: prompt
             }
           ],
-          max_tokens: 4000
+          max_tokens: 8000
         })
       });
     } else if (model === 'claude-sonnet') {
