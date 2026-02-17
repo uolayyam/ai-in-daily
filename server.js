@@ -111,7 +111,7 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
     }
 
     // Build the prompt for Claude
-    const today = new Date().toLocaleDateString('en-US', { 
+const today = req.body.today || new Date().toLocaleDateString('en-US', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
