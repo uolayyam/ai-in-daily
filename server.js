@@ -387,17 +387,25 @@ ALWAYS GENERATE A REPORT. Even slow news days need threat assessments.`;
     let response;
     
 if (model === 'gpt-4o-mini') {
-      response = await fetch('https://api.openai.com/v1/responses', {
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          tools: [{ type: 'web_search_preview' }],
-          input: prompt,
-          max_output_tokens: 4000
+          model: 'gpt-4o-mini-search-preview',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a threat intelligence analyst. Use your web search capability to find current, real threats and generate reports in HTML format as instructed.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 4000
         })
       });
     } else if (model === 'gpt-4o') {
@@ -491,13 +499,8 @@ const data = await response.json();
     let reportHTML;
     
 if (model === 'gpt-4o' || model === 'gpt-4o-mini') {
-  // OpenAI Responses API format
-      reportHTML = data.output
-        .filter(block => block.type === 'message')
-        .flatMap(block => block.content)
-        .filter(c => c.type === 'output_text')
-        .map(c => c.text)
-        .join('\n\n');
+  // OpenAI Chat Completions format
+      reportHTML = data.choices[0].message.content;
     } else {
       // Claude format
       reportHTML = data.content
