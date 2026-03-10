@@ -29,10 +29,10 @@ const TOPIC_LABELS = {
   'geopolitics': 'Geopolitics',
   'crime': 'Physical Crime',
   'health': 'Health Risks',
+  'military-conflict': 'Military Conflict',
+  'weather': 'Extreme Weather',
   'supply-chain': 'Supply Chain Disruption',
-  'insider-threat': 'Insider Threat',
-  'natural-disasters': 'Natural Disasters',
-  'regulatory': 'Regulatory / Legal Risk'
+  'natural-disasters': 'Natural Disasters'
 };
 
 // ===========================================================================
