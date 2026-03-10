@@ -340,7 +340,7 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_tokens: 8000
+        max_tokens: 10000
       })
     });
 
