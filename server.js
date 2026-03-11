@@ -62,14 +62,35 @@ Examples of what does NOT qualify:
 - Live threat dashboards, always-on attack maps, or permanent baseline statistics
 - Routine local crime reports that do not connect to the client's selected Topic Interests
 
-=== TOPIC INTEREST FILTERING ===
+=== FRESHNESS GATE (apply before writing every single entry) ===
+
+Today's date is provided in the user prompt. Before writing any entry, apply this gate:
+
+STEP 1 — CHECK THE EVENT DATE.
+If the triggering event occurred more than 72 hours before today's date, it is STALE. A stale event CANNOT be used as the primary anchor for a daily entry. Do not write the entry using that event. Go to Step 2.
+
+STEP 2 — RE-SEARCH.
+Run at least two additional targeted searches to find a fresher event for that location and those topics. Use date-specific queries such as:
+- "[location] [topic] today"
+- "[location] [topic] [today's weekday] [today's month] [today's year]"
+- "[location] security advisory [today's date]"
+
+STEP 3 — ONGOING STATUS EXCEPTION.
+If the original event is older than 72 hours BUT is confirmed to be still actively developing today (e.g., an ongoing military operation, an active strike, a continuing outage), you MAY write the entry — but ONLY using "As of [today's weekday], [today's month and day]," as the opener, framing the situation as current status, not as the original event date. Example: an event that started on March 4 but is still ongoing on March 10 opens as "As of Monday, March 10," not "As of Wednesday, March 4,".
+
+STEP 4 — FALLBACK BASELINE.
+Only after exhausting all search rounds AND finding no qualifying event within 72 hours AND confirming no ongoing situation: write a short current-status baseline using today's date opener. Keep it to 2–3 sentences for the situation, one sentence each for business impact and mitigation. Do not fabricate incident details.
+
+=== TOPIC INTEREST FILTERING & MANDATORY LOCATION COVERAGE ===
 
 Every single entry MUST map directly to one or more of the client's selected Topic Interests. This is a hard rule with no exceptions.
 
 - If the only recent events for a location fall under topics the client did NOT select, do NOT report those events. Assess the location against SELECTED topics only.
 - Do not substitute an off-topic event just because it is recent. Relevance to selected interests outweighs recency.
-- Exhaust all search rounds before defaulting to a "no significant incidents" entry.
-- When reporting a "no significant incidents" baseline, keep it short: 2–3 sentences maximum for the summary, one sentence each for business impact and mitigation.
+
+MANDATORY COVERAGE RULE — Every asset location listed in the customer profile MUST have at least one entry in the report. Skipping a location entirely is not permitted under any circumstances. If you cannot find a qualifying event for a location after exhausting all search rounds, write a current-status baseline for that location using the FALLBACK BASELINE protocol from the FRESHNESS GATE section above. The baseline must still use today's date opener, still reference the client's selected topics, and still be specific to that city or region — never generic filler.
+
+Before outputting the final report, run a mental checklist: confirm that every asset location from the customer profile appears as a section heading or within a section. If any location is missing, go back and add it before finalising.
 
 === SEARCH STRATEGY ===
 
@@ -132,13 +153,17 @@ Each entry consists of three output fields in this exact order:
 
 === APPROVED DATE-LED OPENERS (rotate — do not repeat the same opener more than twice in any batch of 3+ entries) ===
 
-Use exactly one of these to begin every Body paragraph:
-- For past/confirmed events:     "On [Weekday], [Month] [DD],"
-- For ongoing/current status:    "As of [Weekday], [Month] [DD],"
-- For scheduled/upcoming events: "From [Weekday], [Month] [DD],"  |  "Beginning [Weekday], [Month] [DD],"  |  "Starting [Weekday], [Month] [DD],"
+Use exactly one of these to begin every situation paragraph:
+- For events within the 72-hour window:  "On [Weekday], [Month] [DD],"
+- For ongoing/current status:            "As of [Weekday], [Month] [DD],"
+- For scheduled/upcoming events:         "From [Weekday], [Month] [DD],"  |  "Beginning [Weekday], [Month] [DD],"  |  "Starting [Weekday], [Month] [DD],"
 
-Write dates WITHOUT the year, in the form: "Monday, February 10"
-Write local times in 12-hour clock with AM/PM followed by ", local time" — e.g., "1:00 PM, local time". For time spans, write ", local time" only once after the second time.
+DATE RULES — mandatory:
+1. ALWAYS include the weekday. Correct: "As of Monday, March 10," — Wrong: "As of March 10,"
+2. NEVER include the year in the opener date.
+3. For an event that started before the 72-hour window but is actively ongoing today, use today's date with "As of" — not the original start date.
+4. For an event that occurred within the 72-hour window, use the actual event date with "On".
+5. The date in the opener must match reality — never write a date that hasn't happened yet or is more than 72 hours in the past as if it is fresh news.
 
 === APPROVED ADVISORY STEMS (rotate — never use the same stem in consecutive entries; use at least two different stems across any batch of 2+ entries) ===
 
@@ -186,8 +211,10 @@ After producing the initial entries strictly per the structure above, perform on
 function buildUserPrompt(locations, topicLabels, regions, industries, today) {
 
   // Build customer profile lines — only include fields with values
+  const locationsDisplay = Array.isArray(locations) ? locations.join(' | ') : locations;
+
   let profileBullets = `<ul style="margin: 5px 0 0 0; padding-left: 20px;">
-      <li>Assets: ${locations}</li>
+      <li>Assets: ${locationsDisplay}</li>
       <li>Interests: ${topicLabels.join(' | ')}</li>`;
   if (regions) {
     profileBullets += `\n      <li>Regional Focus: ${regions}</li>`;
@@ -198,7 +225,7 @@ function buildUserPrompt(locations, topicLabels, regions, industries, today) {
   profileBullets += '\n    </ul>';
 
   // Build the customer profile block for the prompt (plain text for the AI to read)
-  let profileText = `Asset Locations: ${locations}
+  let profileText = `Asset Locations: ${locationsDisplay}
 Topic Interests: ${topicLabels.join(', ')}`;
   if (regions) {
     profileText += `\nRegional Focus: ${regions}`;
@@ -207,11 +234,27 @@ Topic Interests: ${topicLabels.join(', ')}`;
     profileText += `\nIndustry/Sector: ${industries}`;
   }
 
-  return `Generate a Daily Threat Outlook report for today: ${today}.
+  // Build explicit per-location coverage checklist for the prompt
+  const locationList = Array.isArray(locations) ? locations : [locations];
+  const locationChecklist = locationList.map((loc, i) => `  ${i + 1}. ${loc}`).join('\n');
+
+  return `Generate a Daily Threat Outlook report.
+
+=== DATE ANCHOR ===
+Today's date is: ${today}
+This is the report date. All freshness calculations, date-led openers for ongoing situations, and the Freshness Gate 72-hour window are measured against THIS date. Do not use any other date as the anchor.
 
 === CUSTOMER PROFILE ===
 
 ${profileText}
+
+=== MANDATORY LOCATION COVERAGE CHECKLIST ===
+
+You MUST produce at least one threat entry for EACH of the following asset locations. This is non-negotiable. Before finalising the report, verify every location below is covered. If a location is missing, add it before outputting.
+
+${locationChecklist}
+
+Do not group these locations in a way that causes any of them to be omitted. Each location gets its own entry, grouped under the correct continental/regional section header.
 
 === REPORT STRUCTURE ===
 
@@ -219,7 +262,7 @@ Output the report as a complete, clean HTML document using the exact template be
 
 BODY SECTION RULES:
 - Group asset locations by continent/region. Section names are dynamic — derive from locations entered.
-- Generate 1–2 threat entries per asset location, relevant to selected Topic Interests, grounded in specific recent events.
+- Generate 1–2 threat entries per asset location, relevant to selected Topic Interests, grounded in specific recent events within 72 hours of today OR confirmed ongoing situations reported using today's date.
 - ${regions ? `Add an "${regions}" section with 1–3 entries since Regional Focus was provided.` : 'No Regional Focus was provided — do NOT create a regional section.'}
 - Always end with a "Global / Transnational" section (1–2 entries).
 - ${industries ? `Weight entries toward ${industries} sector threats where relevant.` : 'No Industry/Sector was provided — keep entries sector-agnostic.'}
@@ -231,16 +274,20 @@ TITLE: Write a Title Case headline of max 120 characters (no date). Must contain
   2. Event (what is happening)
   3. Primary Operational Effect (main disruption or impact)
 
-BODY: Single paragraph of exactly 4–6 sentences and 120–180 words (hard max 200).
-  - Sentence 1–2 (Situation): Start with one APPROVED OPENER (see rotation rule below). State what/where/what is new. Attribute claims to named officials or operators.
-  - Sentence 3–4 (Business Risk): Concrete operational implications. Vary connective phrases per batch: "Impacts include..." / "Effects include..." / "Disruptions may involve..." / "Expect delays across..." / "Short-term constraints on..."
-  - Sentence 5–6 (Resilience): Start with one APPROVED ADVISORY STEM (see rotation rule below). Give 2–4 specific actionable steps. No "stay vigilant" or "monitor the situation."
+BODY PARAGRAPH STRUCTURE — three distinct fields, each with its own <p> tag. DO NOT duplicate content across fields:
+  - SITUATION (the main <p> tag): 1–2 sentences ONLY. Start with one APPROVED OPENER (see below). State what/where/what is new. Attribute claims to named officials or operators. Do NOT include business risk or mitigation here.
+  - BUSINESS IMPACT (the <strong>Business impact:</strong> field): 1–2 sentences. Concrete operational implications — people, assets, logistics, IT, energy, health, regulatory. Vary connective phrases: "Impacts include..." / "Effects include..." / "Disruptions may involve..." / "Expect delays across..." / "Short-term constraints on..."
+  - MITIGATION (the <strong>Mitigation:</strong> field): Start with one APPROVED ADVISORY STEM (see below). 2–4 specific actionable steps in one flowing paragraph. No "stay vigilant" or "monitor the situation."
 
-APPROVED OPENERS — rotate across all entries in this report; never use the same opener more than twice in a single report:
-  - Past/confirmed event:       "On [Weekday], [Month DD],"
-  - Ongoing/current status:     "As of [Weekday], [Month DD],"
-  - Scheduled/upcoming event:   "From [Weekday], [Month DD],"  |  "Beginning [Weekday], [Month DD],"  |  "Starting [Weekday], [Month DD],"
-  Write dates WITHOUT the year. Example: "As of Monday, February 10,"
+APPROVED OPENERS — rotate across all entries; never use the same opener more than twice in this report:
+  - Past/confirmed event within 72 hrs of today:  "On [Weekday], [Month DD],"
+  - Ongoing situation (any age if still active):   "As of [Weekday], [Month DD],"  ← use TODAY's date for ongoing situations
+  - Scheduled/upcoming:                            "From [Weekday], [Month DD],"  |  "Beginning [Weekday], [Month DD],"  |  "Starting [Weekday], [Month DD],"
+
+  OPENER DATE RULES:
+  - ALWAYS include the weekday. RIGHT: "As of Monday, March 10,"  WRONG: "As of March 10,"
+  - NEVER use a past event's date if that event is older than 72 hours. If it's ongoing, open with today's date instead.
+  - NEVER include the year.
 
 APPROVED ADVISORY STEMS — rotate across all entries; never repeat the same stem in back-to-back entries; use at least two different stems across the full report:
   - "Companies should ..."
@@ -261,9 +308,9 @@ Each threat entry must use this exact HTML structure:
 
 <hr style="border: none; border-top: 1px solid #ccc; margin: 30px 0;">
 <p><strong>[Geography + Event + Primary Operational Effect — Title Case, max 120 chars, no date]</strong></p>
-<p>[BODY: single paragraph, 4–6 sentences, 120–180 words, starting with an APPROVED OPENER, ending resilience advice with an APPROVED ADVISORY STEM + 2–4 specific actions]</p>
-<p><strong>Business impact:</strong> [1–2 sentences — concrete operational implications to people/assets/logistics/IT/energy/health/regulatory]</p>
-<p><strong>Mitigation:</strong> [Start with an APPROVED ADVISORY STEM — 2–4 specific actionable steps in one flowing paragraph. No boilerplate.]</p>
+<p>[SITUATION ONLY: 1–2 sentences starting with an APPROVED OPENER. What happened/where/what is new. Named attribution. No risk or mitigation here.]</p>
+<p><strong>Business impact:</strong> [1–2 sentences — concrete operational implications. Use a variety phrase opener. No repetition of the situation text above.]</p>
+<p><strong>Mitigation:</strong> [Start with an APPROVED ADVISORY STEM — 2–4 specific actionable steps in one flowing paragraph. No boilerplate. No repetition of situation or business impact text.]</p>
 <!-- Include the following line ONLY if sources materially disagree: -->
 <!-- <p><em>Reports differ on [X] ([Outlet A] vs. [Outlet B]); monitoring for confirmation.</em></p> -->
 
