@@ -35,6 +35,40 @@ const TOPIC_LABELS = {
   'natural-disasters': 'Natural Disasters'
 };
 
+// Regional Focus value → display label
+// Defensive fallback: frontend now sends labels directly, but this map
+// catches any raw slug that slips through to ensure clean display.
+const REGION_LABELS = {
+  'africa': 'Africa',
+  'asia-pacific': 'Asia-Pacific',
+  'europe': 'Europe',
+  'latin-america': 'Latin America',
+  'middle-east-north-africa': 'Middle East & North Africa',
+  'north-america': 'North America',
+  'russia-former-soviet-union': 'Russia & Former Soviet Union',
+  'south-asia': 'South Asia',
+  'sub-saharan-africa': 'Sub-Saharan Africa'
+};
+
+// Industry/Sector value → display label
+const INDUSTRY_LABELS = {
+  'chemical': 'Chemical',
+  'commercial-facilities': 'Commercial Facilities',
+  'communications': 'Communications',
+  'critical-manufacturing': 'Critical Manufacturing',
+  'defense': 'Defense Industrial Base',
+  'emergency-services': 'Emergency Services',
+  'energy': 'Energy',
+  'financial-services': 'Financial Services',
+  'food-agriculture': 'Food & Agriculture',
+  'government': 'Government Facilities',
+  'healthcare': 'Healthcare',
+  'it': 'Information Technology',
+  'nuclear': 'Nuclear',
+  'transportation': 'Transportation',
+  'water': 'Water & Wastewater'
+};
+
 // ===========================================================================
 // V5 SYSTEM PROMPT — Pandora-aligned DTO Entry Guidance standard
 // Embeds all rules from DTO Entry Guidance v0.2.2 (Format, Style & Controlled Variety)
@@ -64,10 +98,10 @@ Examples of what does NOT qualify:
 
 === FRESHNESS GATE (apply before writing every single entry) ===
 
-Today's date is provided in the user prompt. Before writing any entry, apply this gate:
+The user prompt contains two critical dates: TODAY'S DATE and a FRESHNESS CUTOFF date. Before writing any entry, apply this gate:
 
 STEP 1 — CHECK THE EVENT DATE.
-If the triggering event occurred more than 72 hours before today's date, it is STALE. A stale event CANNOT be used as the primary anchor for a daily entry. Do not write the entry using that event. Go to Step 2.
+If the triggering event occurred before the FRESHNESS CUTOFF date provided in the user prompt, it is STALE. A stale event CANNOT be used as the primary anchor for a daily entry. Do not write the entry using that event's original date. Go to Step 2.
 
 STEP 2 — RE-SEARCH.
 Run at least two additional targeted searches to find a fresher event for that location and those topics. Use date-specific queries such as:
@@ -76,10 +110,12 @@ Run at least two additional targeted searches to find a fresher event for that l
 - "[location] security advisory [today's date]"
 
 STEP 3 — ONGOING STATUS EXCEPTION.
-If the original event is older than 72 hours BUT is confirmed to be still actively developing today (e.g., an ongoing military operation, an active strike, a continuing outage), you MAY write the entry — but ONLY using "As of [today's weekday], [today's month and day]," as the opener, framing the situation as current status, not as the original event date. Example: an event that started on March 4 but is still ongoing on March 10 opens as "As of Monday, March 10," not "As of Wednesday, March 4,".
+If the original event predates the cutoff BUT is confirmed to be still actively developing today (e.g., an ongoing military operation, an active strike, a continuing outage, a live investigation), you MAY write the entry — but ONLY using "As of [today's weekday], [today's month and day]," as the opener, framing the situation as its current status today, NOT as the original event date.
+CORRECT: event started March 4, still ongoing March 12 → opens "As of Thursday, March 12,"
+WRONG: event started March 4, still ongoing March 12 → opens "As of Wednesday, March 4,"
 
 STEP 4 — FALLBACK BASELINE.
-Only after exhausting all search rounds AND finding no qualifying event within 72 hours AND confirming no ongoing situation: write a short current-status baseline using today's date opener. Keep it to 2–3 sentences for the situation, one sentence each for business impact and mitigation. Do not fabricate incident details.
+Only after exhausting all search rounds AND finding no qualifying fresh event AND confirming no ongoing situation: write a short current-status baseline using today's date opener. Keep it to 2–3 sentences for the situation, one sentence each for business impact and mitigation. Do not fabricate incident details. Never write a date in the opener that is before the cutoff date.
 
 === TOPIC INTEREST FILTERING & MANDATORY LOCATION COVERAGE ===
 
@@ -184,7 +220,7 @@ Use exactly one of these to begin the resilience advice sentence:
 5. PUNCTUATION: ASCII only — straight quotes (" ') and hyphens (-). No smart quotes, no en-dashes, no em-dashes.
 6. TONE: Human analyst voice — diplomatic, policy-literate, succinct, focused on business-relevant assessments. Use precise verbs. Attribute strong claims to named officials or operators. Avoid robotic repetition.
 7. TENSE: Present for current conditions; past for completed events.
-8. ATTRIBUTION: Claims about specific incidents must be attributed to named officials, agencies, or operators — not passive constructions.
+8. ATTRIBUTION: Every claim about a specific incident must be attributed to a named official, agency, or operator — e.g., "Boston Police Department confirmed", "the U.S. Federal Bureau of Investigation (FBI) stated", "Taiwan's Ministry of National Defense reported." If no named source is available, restructure the sentence to describe the observable confirmed fact rather than attributing it to an unnamed party. Never use vague constructions like "officials noted," "authorities said," or "sources indicate" without naming the specific agency or official.
 9. NO AI DISCLAIMERS: Write as the analyst. Never reference being an AI.
 10. SELF-CONTAINED: Each entry must stand alone without reference to other entries.
 
@@ -208,7 +244,7 @@ After producing the initial entries strictly per the structure above, perform on
 // ===========================================================================
 // BUILD USER PROMPT — Injects form data + Pandora-aligned HTML template (V5)
 // ===========================================================================
-function buildUserPrompt(locations, topicLabels, regions, industries, today) {
+function buildUserPrompt(locations, topicLabels, regions, industries, today, cutoffDateStr) {
 
   // Build customer profile lines — only include fields with values
   const locationsDisplay = Array.isArray(locations) ? locations.join(' | ') : locations;
@@ -242,7 +278,9 @@ Topic Interests: ${topicLabels.join(', ')}`;
 
 === DATE ANCHOR ===
 Today's date is: ${today}
-This is the report date. All freshness calculations, date-led openers for ongoing situations, and the Freshness Gate 72-hour window are measured against THIS date. Do not use any other date as the anchor.
+Freshness cutoff: ${cutoffDateStr}
+
+This is the report date. The FRESHNESS CUTOFF is a hard limit — do not use any event that occurred before ${cutoffDateStr} as the primary anchor for an entry, unless that situation is confirmed to be actively ongoing today. All date-led openers for ongoing situations must use today's date (${today}), not the original event start date. Do not use any other date as the anchor.
 
 === CUSTOMER PROFILE ===
 
@@ -262,9 +300,9 @@ Output the report as a complete, clean HTML document using the exact template be
 
 BODY SECTION RULES:
 - Group asset locations by continent/region. Section names are dynamic — derive from locations entered.
-- Generate 1–2 threat entries per asset location, relevant to selected Topic Interests, grounded in specific recent events within 72 hours of today OR confirmed ongoing situations reported using today's date.
-- ${regions ? `Add an "${regions}" section with 1–3 entries since Regional Focus was provided.` : 'No Regional Focus was provided — do NOT create a regional section.'}
-- Always end with a "Global / Transnational" section (1–2 entries).
+- Generate 1–2 threat entries per asset location, relevant to selected Topic Interests, grounded in specific recent events after the FRESHNESS CUTOFF date OR confirmed ongoing situations reported using today's date.
+- ${regions ? `Add a "${regions}" section with 1–3 entries since Regional Focus was provided. GEOGRAPHIC CONTAINMENT RULE: this section may ONLY contain events physically located within the ${regions} region. Events that are thematically related to ${regions} but physically located elsewhere (e.g. a military exercise in Asia connected to Middle East tensions) do NOT belong here — place them in Global / Transnational instead.` : 'No Regional Focus was provided — do NOT create a regional section.'}
+- Always end with a "Global / Transnational" section (1–2 entries). This is the correct home for: events affecting multiple regions simultaneously, transnational threats, and any event thematically related to a regional focus but physically located outside it.
 - ${industries ? `Weight entries toward ${industries} sector threats where relevant.` : 'No Industry/Sector was provided — keep entries sector-agnostic.'}
 
 ENTRY FORMAT RULES (read carefully before writing any entry):
@@ -280,13 +318,19 @@ BODY PARAGRAPH STRUCTURE — three distinct fields, each with its own <p> tag. D
   - MITIGATION (the <strong>Mitigation:</strong> field): Start with one APPROVED ADVISORY STEM (see below). 2–4 specific actionable steps in one flowing paragraph. No "stay vigilant" or "monitor the situation."
 
 APPROVED OPENERS — rotate across all entries; never use the same opener more than twice in this report:
-  - Past/confirmed event within 72 hrs of today:  "On [Weekday], [Month DD],"
-  - Ongoing situation (any age if still active):   "As of [Weekday], [Month DD],"  ← use TODAY's date for ongoing situations
-  - Scheduled/upcoming:                            "From [Weekday], [Month DD],"  |  "Beginning [Weekday], [Month DD],"  |  "Starting [Weekday], [Month DD],"
+  - Past/confirmed event after cutoff, now concluded:  "On [Weekday], [Month DD],"
+  - Ongoing/active/developing situation:               "As of [Weekday], [Month DD],"  ← use TODAY's date
+  - Scheduled/upcoming:                                "From [Weekday], [Month DD],"  |  "Beginning [Weekday], [Month DD],"  |  "Starting [Weekday], [Month DD],"
+
+  OPENER SELECTION GUIDANCE:
+  - If the situation is still active, developing, or has ongoing implications TODAY — use "As of [today's date]," even if the triggering event occurred earlier within the cutoff window.
+  - Only use "On [event date]," for events that are clearly concluded with no active ongoing dimension.
+  - In practice, most intelligence entries involve ongoing or developing situations — "As of" will often be the most accurate opener. Actively prefer it over "On" where the situation is still live.
+  - Scheduled or announced future events always use "From / Beginning / Starting."
 
   OPENER DATE RULES:
-  - ALWAYS include the weekday. RIGHT: "As of Monday, March 10,"  WRONG: "As of March 10,"
-  - NEVER use a past event's date if that event is older than 72 hours. If it's ongoing, open with today's date instead.
+  - ALWAYS include the weekday. RIGHT: "As of Thursday, March 12,"  WRONG: "As of March 12,"
+  - NEVER use a date before the freshness cutoff. If a situation started before the cutoff but is ongoing, use today's date.
   - NEVER include the year.
 
 APPROVED ADVISORY STEMS — rotate across all entries; never repeat the same stem in back-to-back entries; use at least two different stems across the full report:
@@ -440,7 +484,18 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
     }
 
     // --- Generate today's date server-side ---
-    const today = new Date().toLocaleDateString('en-US', {
+    const now = new Date();
+    const today = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    // --- Compute the 72-hour freshness cutoff date (today minus 3 days) ---
+    const cutoffDate = new Date(now);
+    cutoffDate.setDate(cutoffDate.getDate() - 3);
+    const cutoffDateStr = cutoffDate.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -452,14 +507,29 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
       (t) => TOPIC_LABELS[t] || t
     );
 
+    // --- Map region values to display labels (defensive — frontend now sends labels) ---
+    const regionLabels = regions
+      ? (Array.isArray(regions) ? regions : regions.split(/[,|]/).map(r => r.trim()))
+          .map(r => REGION_LABELS[r] || r)
+          .join(' | ')
+      : '';
+
+    // --- Map industry values to display labels (defensive — frontend now sends labels) ---
+    const industryLabels = industries
+      ? (Array.isArray(industries) ? industries : industries.split(/[,|]/).map(i => i.trim()))
+          .map(i => INDUSTRY_LABELS[i] || i)
+          .join(' | ')
+      : '';
+
     // --- Build prompts ---
     const systemPrompt = buildSystemPrompt();
     const userPrompt = buildUserPrompt(
       locations,
       topicLabels,
-      regions || '',
-      industries || '',
-      today
+      regionLabels,
+      industryLabels,
+      today,
+      cutoffDateStr
     );
 
     // --- Call OpenAI ---
