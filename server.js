@@ -455,6 +455,13 @@ ${profileBullets}
 // ===========================================================================
 // POST-PROCESSING — Strip citations, URLs, and artifacts from AI output
 // ===========================================================================
+// AFTER
+const AI_DISCLAIMER_HTML = `
+<hr style="border: none; border-top: 1px solid #e0e0e0; margin: 40px 0 20px 0;">
+<p style="font-size: 11px; color: #999; line-height: 1.6; margin: 0;">
+  <strong style="color: #bbb;">AI-Generated Content:</strong> This report was produced by an AI model using real-time open-source intelligence and is intended to supplement — not replace — professional risk assessment. While designed to meet professional intelligence standards, AI can make errors, miss context, or reflect incomplete source coverage. Always verify critical findings with your security team or a qualified analyst before taking operational action.
+</p>`;
+
 function cleanReport(html) {
   let cleaned = html;
 
@@ -477,6 +484,10 @@ function cleanReport(html) {
 
   const htmlEnd = cleaned.indexOf('</html>');
   if (htmlEnd > 0) cleaned = cleaned.substring(0, htmlEnd + 7);
+
+  // Inject AI disclaimer into the report body before </body>
+  // This guarantees it appears in every download (PDF and TXT) regardless of AI output
+  cleaned = cleaned.replace(/<\/body>/i, `${AI_DISCLAIMER_HTML}\n</body>`);
 
   return cleaned;
 }
