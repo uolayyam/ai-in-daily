@@ -458,6 +458,7 @@ ${profileBullets}
 function cleanReport(html) {
   let cleaned = html;
 
+  cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '');
   cleaned = cleaned.replace(/```html\s*/gi, '').replace(/```\s*/g, '');
   cleaned = cleaned.replace(/https?:\/\/\S+/gi, '');
   cleaned = cleaned.replace(/\[\s*\d+(?:\s*,\s*\d+)*\s*\]/g, '');
