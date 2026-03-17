@@ -455,13 +455,6 @@ ${profileBullets}
 // ===========================================================================
 // POST-PROCESSING — Strip citations, URLs, and artifacts from AI output
 // ===========================================================================
-// AFTER
-const AI_DISCLAIMER_HTML = `
-<hr style="border: none; border-top: 1px solid #e0e0e0; margin: 40px 0 20px 0;">
-<p style="font-size: 11px; color: #999; line-height: 1.6; margin: 0;">
-  <strong style="color: #bbb;">AI-Generated Content:</strong> This report was produced by an AI model using real-time open-source intelligence and is intended to supplement — not replace — professional risk assessment. While designed to meet professional intelligence standards, AI can make errors, miss context, or reflect incomplete source coverage. Always verify critical findings with your security team or a qualified analyst before taking operational action.
-</p>`;
-
 function cleanReport(html) {
   let cleaned = html;
 
@@ -484,10 +477,6 @@ function cleanReport(html) {
 
   const htmlEnd = cleaned.indexOf('</html>');
   if (htmlEnd > 0) cleaned = cleaned.substring(0, htmlEnd + 7);
-
-  // Inject AI disclaimer into the report body before </body>
-  // This guarantees it appears in every download (PDF and TXT) regardless of AI output
-  cleaned = cleaned.replace(/<\/body>/i, `${AI_DISCLAIMER_HTML}\n</body>`);
 
   return cleaned;
 }
@@ -644,19 +633,14 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
       },
-body: JSON.stringify({
-  model: 'gpt-4.1',
-  messages: [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt }
-  ],
-  tools: [
-    {
-      type: 'web_search_preview'
-    }
-  ],
-  max_tokens: 10000
-})
+      body: JSON.stringify({
+        model: 'gpt-4o-search-preview',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: 10000
+      })
     });
 
     if (!response.ok) {
@@ -668,19 +652,8 @@ body: JSON.stringify({
       });
     }
 
-const data = await response.json();
-const msg = data.choices?.[0]?.message;
-let reportHTML = '';
-if (Array.isArray(msg?.content)) {
-  // gpt-4.1 with web search returns an array of blocks — grab the text ones
-  reportHTML = msg.content
-    .filter(block => block.type === 'text' || block.type === 'output_text')
-    .map(block => block.text)
-    .join('');
-} else {
-  // Fallback: plain string response (no tool use triggered)
-  reportHTML = msg?.content || '';
-}
+    const data = await response.json();
+    let reportHTML = data.choices?.[0]?.message?.content || '';
 
     // --- Post-process to strip citations/URLs ---
     reportHTML = cleanReport(reportHTML);
