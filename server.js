@@ -652,8 +652,7 @@ body: JSON.stringify({
   ],
   tools: [
     {
-      type: 'web_search_20250305',
-      name: 'web_search'
+      type: 'web_search_preview'
     }
   ],
   max_tokens: 10000
@@ -669,8 +668,19 @@ body: JSON.stringify({
       });
     }
 
-    const data = await response.json();
-    let reportHTML = data.choices?.[0]?.message?.content || '';
+const data = await response.json();
+const msg = data.choices?.[0]?.message;
+let reportHTML = '';
+if (Array.isArray(msg?.content)) {
+  // gpt-4.1 with web search returns an array of blocks — grab the text ones
+  reportHTML = msg.content
+    .filter(block => block.type === 'text' || block.type === 'output_text')
+    .map(block => block.text)
+    .join('');
+} else {
+  // Fallback: plain string response (no tool use triggered)
+  reportHTML = msg?.content || '';
+}
 
     // --- Post-process to strip citations/URLs ---
     reportHTML = cleanReport(reportHTML);
