@@ -644,14 +644,20 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-search-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 10000
-      })
+body: JSON.stringify({
+  model: 'gpt-4.1',
+  messages: [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ],
+  tools: [
+    {
+      type: 'web_search_20250305',
+      name: 'web_search'
+    }
+  ],
+  max_tokens: 10000
+})
     });
 
     if (!response.ok) {
