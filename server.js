@@ -645,7 +645,7 @@ app.post('/api/generate-threat-outlook', async (req, res) => {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
       },
 body: JSON.stringify({
-  model: 'gpt-4.1',
+  model: 'gpt-5',
   tools: [{ type: 'web_search_preview' }],
   input: [
     { role: 'system', content: systemPrompt },
