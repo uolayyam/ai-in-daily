@@ -31,7 +31,7 @@ const fetch =
 //   CREATE INDEX idx_dto_logs_user_date
 //     ON dto_logs (zendesk_user_id, created_at DESC);
 //
-// ===========================================================================
+// ==========================================================================
 const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(
   process.env.SUPABASE_URL,
